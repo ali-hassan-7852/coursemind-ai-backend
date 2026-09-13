@@ -30,7 +30,11 @@ def ask_question(
         )
 
     context_texts = [chunk.content for chunk in relevant_chunks]
-    answer = generate_answer(request.question, context_texts)
+    answer = generate_answer(
+    request.question,
+    context_texts,
+    history=[turn.model_dump() for turn in request.history],
+    )
 
     sources = [
         SourceChunk(content=chunk.content[:200], document_filename=chunk.document.filename)

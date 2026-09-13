@@ -37,8 +37,14 @@ class UploadResponse(BaseModel):
 
 # --- Query ---
 
+class ChatTurn(BaseModel):
+    question: str
+    answer: str
+
+
 class QueryRequest(BaseModel):
     question: str
+    history: List[ChatTurn] = []
 
 
 class SourceChunk(BaseModel):

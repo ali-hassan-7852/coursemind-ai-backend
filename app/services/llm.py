@@ -46,24 +46,37 @@ and get back a grounded answer.
 Uses Groq's free-tier API by default (OpenAI-compatible format) - swap
 the URL/model in .env to use OpenAI, Together, or any compatible provider.
 """
-from typing import List
+from typing import List, Optional
 import requests
 from app.config import settings
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 
-def generate_answer(question: str, context_chunks: List[str]) -> str:
+def generate_answer(
+    question: str,
+    context_chunks: List[str],
+    history: Optional[List[dict]] = None,
+) -> str:
     context = "\n\n".join(context_chunks)
 
+    history_text = ""
+    if history:
+        recent = history[-5:]  # cap context size regardless of how much is sent in
+        lines = [f"Q: {t['question']}\nA: {t['answer']}" for t in recent]
+        history_text = "Previous conversation in this session:\n" + "\n\n".join(lines) + "\n\n"
+
     prompt = (
-        "Answer the question using only the context below. Write in clear, "
-        "well-organized Markdown: use a numbered or bulleted list when the "
-        "question asks for multiple items, steps, or topics; use short "
-        "paragraphs otherwise. For bold text, always use matching double "
-        "asterisks like **this** - never a single asterisk, and never "
-        "mismatch the number of asterisks on each side. If the answer isn't "
-        "in the context, say you don't have enough information.\n\n"
+        "Answer the question using only the context below, and taking the "
+        "previous conversation into account if it's relevant (e.g. if the "
+        "question refers to 'it' or 'that', check what it likely means from "
+        "the conversation above). Write in clear, well-organized Markdown: "
+        "use a numbered or bulleted list when the question asks for "
+        "multiple items, steps, or topics; use short paragraphs otherwise. "
+        "For bold text, always use matching double asterisks like **this** "
+        "- never a single asterisk, and never mismatched. If the answer "
+        "isn't in the context, say you don't have enough information.\n\n"
+        f"{history_text}"
         f"Context:\n{context}\n\nQuestion: {question}\nAnswer:"
     )
 
