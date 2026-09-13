@@ -1,26 +1,36 @@
 """
 Step 3 of the pipeline: text -> vector.
-Uses fastembed (ONNX-based) instead of sentence-transformers/torch -
-same quality embeddings, far lighter on memory, which matters on
-Render's free 512MB tier.
+Uses Google's Gemini Embedding API (hosted, free tier, no credit card
+required) instead of running any model in-process. This is the key fix
+for Render's 512MB free-tier memory limit - no ML model ever loads into
+this container's RAM, since the embedding computation happens on
+Google's servers via a plain HTTP call.
 """
 from typing import List
-from fastembed import TextEmbedding
+from google import genai
 from app.config import settings
 
-_model = None
+_client = None
 
 
-def get_model() -> TextEmbedding:
-    global _model
-    if _model is None:
-        _model = TextEmbedding(model_name=settings.EMBEDDING_MODEL)
-    return _model
+def get_client() -> genai.Client:
+    global _client
+    if _client is None:
+        _client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    return _client
 
 
 def embed_text(text: str) -> List[float]:
-    return list(get_model().embed([text]))[0].tolist()
+    result = get_client().models.embed_content(
+        model="gemini-embedding-001",
+        contents=text,
+    )
+    return result.embeddings[0].values
 
 
 def embed_batch(texts: List[str]) -> List[List[float]]:
-    return [vec.tolist() for vec in get_model().embed(texts)]
+    result = get_client().models.embed_content(
+        model="gemini-embedding-001",
+        contents=texts,
+    )
+    return [e.values for e in result.embeddings]

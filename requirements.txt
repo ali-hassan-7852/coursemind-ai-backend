@@ -1,4 +1,4 @@
-fastembed
+google-genai
 fastapi
 uvicorn[standard]
 sqlalchemy

@@ -22,12 +22,12 @@ class Settings:
 
     # Embeddings
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-    EMBEDDING_DIM: int = int(os.getenv("EMBEDDING_DIM", "384"))
+    EMBEDDING_DIM: int = int(os.getenv("EMBEDDING_DIM", "768"))
 
     # LLM (answer generation)
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "groq")
     LLM_MODEL: str = os.getenv("LLM_MODEL", "llama-3.1-8b-instant")
-    LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 
 
 settings = Settings()
